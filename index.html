@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#111827" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Tabela Estudos" />
+  <title>Criador de Tabela por Matéria</title>
+
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+
+  <style>
+    :root {
+      --bg: #f4f4f5;
+      --card: #ffffff;
+      --text: #18181b;
+      --muted: #71717a;
+      --line: #111111;
+      --soft: #e5e7eb;
+      --header: #d9d9d9;
+      --primary: #111827;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    .app {
+      max-width: 1160px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    h1 {
+      margin: 0 0 6px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: flex-end;
+    }
+
+    .panel {
+      background: var(--card);
+      border: 1px solid var(--soft);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 8px 22px rgba(15, 23, 42, 0.06);
+      margin-bottom: 18px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d4d4d8;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 14px;
+      background: #fff;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #111827;
+    }
+
+    textarea {
+      min-height: 180px;
+      resize: vertical;
+      line-height: 1.45;
+    }
+
+    .field { margin-bottom: 14px; }
+
+    .help {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.4;
+      margin: 7px 0 0;
+    }
+
+    .settings {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    button {
+      border: 0;
+      background: var(--primary);
+      color: #fff;
+      padding: 11px 14px;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button.secondary {
+      background: #e4e4e7;
+      color: #18181b;
+    }
+
+    button.danger { background: #991b1b; }
+
+    .install-tip {
+      display: block;
+      margin-top: 10px;
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: 12px;
+      padding: 12px;
+      color: #334155;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .install-tip.ok {
+      border-color: #86efac;
+      background: #f0fdf4;
+      color: #166534;
+    }
+
+    .preview-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 22px 0 10px;
+    }
+
+    .preview-title h2 {
+      margin: 0;
+      font-size: 22px;
+    }
+
+    .print-area {
+      background: #fff;
+      padding: 18px;
+      border-radius: 16px;
+      border: 1px solid var(--soft);
+    }
+
+    .table-tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .study-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 15px;
+      background: #fff;
+    }
+
+    .study-table th,
+    .study-table td {
+      border: 1.5px solid var(--line);
+      height: var(--row-height, 42px);
+      padding: 8px;
+      vertical-align: middle;
+    }
+
+    .subject-header th {
+      background: var(--header);
+      text-align: left;
+      font-size: 20px;
+      font-weight: 800;
+      height: 44px;
+    }
+
+    .column-header th {
+      background: var(--header);
+      text-align: center;
+      font-weight: 800;
+    }
+
+    .column-header .topic-heading { text-align: left; }
+
+    .week-col { width: var(--week-width, 20%); }
+    .topic-col { width: var(--topic-width, 42%); }
+
+    .check-col {
+      width: calc((100% - var(--week-width, 20%) - var(--topic-width, 42%)) / 4);
+      text-align: center;
+    }
+
+    .editable { outline: none; }
+    .editable:focus { background: #fff7ed; }
+
+    .empty-note {
+      color: var(--muted);
+      text-align: center;
+      padding: 36px;
+    }
+
+    @media (max-width: 850px) {
+      .grid, .settings { grid-template-columns: 1fr; }
+      .topbar, .preview-title {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .top-actions { justify-content: stretch; }
+      .top-actions button { flex: 1; }
+      .study-table { font-size: 13px; }
+    }
+
+    @media print {
+      * {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+
+      body { background: #fff; }
+      .app { max-width: none; padding: 0; }
+      .no-print { display: none !important; }
+
+      .print-area {
+        border: 0;
+        border-radius: 0;
+        padding: 0;
+      }
+
+      .study-table th,
+      .study-table td {
+        border: 1.3px solid #000;
+      }
+
+      @page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <main class="app">
+    <section class="topbar no-print">
+      <div>
+        <h1>📋 Criador de Tabela por Matéria</h1>
+        <p class="subtitle">Informe a matéria, as datas e os tópicos. O app monta a tabela, deixa editar e permite imprimir.</p>
+        <div id="installTip" class="install-tip">
+          O botão de instalar fica visível aqui. Para instalar de verdade, abra o app pelo link do GitHub Pages no Chrome/Edge. Se o navegador não liberar o botão automático, use o menu ⋮ e toque em “Instalar app” ou “Adicionar à tela inicial”.
+        </div>
+      </div>
+      <div class="top-actions">
+        <button id="installBtn" type="button">Instalar app</button>
+        <button type="button" onclick="window.print()">Imprimir / Salvar em PDF</button>
+      </div>
+    </section>
+
+    <section class="panel no-print">
+      <div class="field">
+        <label for="subjectName">Nome da matéria</label>
+        <input id="subjectName" type="text" placeholder="Ex: Matemática 3" />
+      </div>
+
+      <div class="grid">
+        <div class="field">
+          <label for="datesInput">Datas para preencher a coluna Semana</label>
+          <textarea id="datesInput" spellcheck="false" placeholder="Ex:
+17/07
+21/07
+24/07
+28/07"></textarea>
+          <p class="help">Escreva uma data por linha. Pode usar 17/07, 17-07, Semana: 17/07 ou bullet points.</p>
+        </div>
+
+        <div class="field">
+          <label for="topicsInput">Tópicos em bullet points</label>
+          <textarea id="topicsInput" spellcheck="false" placeholder="Ex:
+- Geometria Plana Euclidiana
+- Triângulos
+- Círculo e Circunferência
+- Polígonos"></textarea>
+          <p class="help">O app remove automaticamente hífen, bolinha ou numeração e coloca cada tópico em uma linha da tabela.</p>
+        </div>
+      </div>
+
+      <div class="settings">
+        <div class="field">
+          <label for="rowsCount">Quantidade de linhas</label>
+          <input id="rowsCount" type="number" min="1" max="80" value="12" />
+        </div>
+        <div class="field">
+          <label for="rowHeight">Altura das linhas</label>
+          <select id="rowHeight">
+            <option value="36px">Compacta</option>
+            <option value="42px" selected>Normal</option>
+            <option value="52px">Grande</option>
+            <option value="62px">Muito grande</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="weekWidth">Coluna Semana</label>
+          <select id="weekWidth">
+            <option value="16%">Menor</option>
+            <option value="20%" selected>Normal</option>
+            <option value="24%">Maior</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="topicWidth">Coluna Tópico</label>
+          <select id="topicWidth">
+            <option value="38%">Menor</option>
+            <option value="42%" selected>Normal</option>
+            <option value="48%">Maior</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button id="generateBtn" type="button">Gerar tabela</button>
+        <button class="secondary" id="autoRowsBtn" type="button">Ajustar linhas automaticamente</button>
+        <button class="secondary" id="sampleBtn" type="button">Exemplo</button>
+        <button class="danger" id="clearBtn" type="button">Limpar</button>
+      </div>
+    </section>
+
+    <section class="preview-title no-print">
+      <h2>Prévia para impressão</h2>
+      <p class="subtitle">Pode clicar em qualquer célula da tabela para editar antes de imprimir.</p>
+    </section>
+
+    <section id="printArea" class="print-area">
+      <p class="empty-note">Preencha os dados acima e clique em “Gerar tabela”.</p>
+    </section>
+  </main>
+
+  <script>
+    const subjectName = document.getElementById('subjectName');
+    const datesInput = document.getElementById('datesInput');
+    const topicsInput = document.getElementById('topicsInput');
+    const rowsCount = document.getElementById('rowsCount');
+    const rowHeight = document.getElementById('rowHeight');
+    const weekWidth = document.getElementById('weekWidth');
+    const topicWidth = document.getElementById('topicWidth');
+    const printArea = document.getElementById('printArea');
+    const installBtn = document.getElementById('installBtn');
+    const installTip = document.getElementById('installTip');
+
+    const STORAGE_KEY = 'tabela-unica-por-materia-v4';
+    let deferredPrompt = null;
+
+    function cleanBullet(line) {
+      return line
+        .trim()
+        .replace(/^([-*•–—]|\d+[.)])\s+/, '')
+        .replace(/^Semana\s*:?\s*/i, '')
+        .trim();
+    }
+
+    function parseLines(text) {
+      return text
+        .split(/\r?\n/)
+        .map(cleanBullet)
+        .filter(Boolean);
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function createEditableCell(text, className) {
+      const td = document.createElement('td');
+      td.textContent = text || '';
+      td.contentEditable = 'true';
+      td.className = `editable ${className || ''}`.trim();
+      return td;
+    }
+
+    function buildTable() {
+      const subject = subjectName.value.trim() || 'Matéria';
+      const dates = parseLines(datesInput.value);
+      const topics = parseLines(topicsInput.value);
+      const totalRows = Math.max(Number(rowsCount.value) || 1, dates.length, topics.length, 1);
+
+      printArea.innerHTML = '';
+
+      const tools = document.createElement('div');
+      tools.className = 'table-tools no-print';
+      tools.innerHTML = `
+        <button class="secondary" type="button" id="addRowBtn">+ linha</button>
+        <button class="secondary" type="button" id="removeRowBtn">- linha</button>
+        <span class="help">A tabela abaixo é editável.</span>
+      `;
+      printArea.appendChild(tools);
+
+      const table = document.createElement('table');
+      table.className = 'study-table';
+      table.style.setProperty('--row-height', rowHeight.value);
+      table.style.setProperty('--week-width', weekWidth.value);
+      table.style.setProperty('--topic-width', topicWidth.value);
+
+      table.innerHTML = `
+        <colgroup>
+          <col class="week-col" />
+          <col class="topic-col" />
+          <col class="check-col" />
+          <col class="check-col" />
+          <col class="check-col" />
+          <col class="check-col" />
+        </colgroup>
+        <thead>
+          <tr class="subject-header">
+            <th colspan="6" contenteditable="true" class="editable">${escapeHtml(subject)}</th>
+          </tr>
+          <tr class="column-header">
+            <th>Semana</th>
+            <th class="topic-heading">Tópico</th>
+            <th>Teoria</th>
+            <th>Rev. 1</th>
+            <th>Rev. 2</th>
+            <th>Rev. 3</th>
+          </tr>
+        </thead>
+      `;
+
+      const tbody = document.createElement('tbody');
+
+      for (let i = 0; i < totalRows; i++) {
+        const tr = document.createElement('tr');
+        tr.appendChild(createEditableCell(dates[i] || '', 'week-cell'));
+        tr.appendChild(createEditableCell(topics[i] || '', 'topic-cell'));
+        tr.appendChild(createEditableCell('', 'check-cell'));
+        tr.appendChild(createEditableCell('', 'check-cell'));
+        tr.appendChild(createEditableCell('', 'check-cell'));
+        tr.appendChild(createEditableCell('', 'check-cell'));
+        tbody.appendChild(tr);
+      }
+
+      table.appendChild(tbody);
+      printArea.appendChild(table);
+
+      document.getElementById('addRowBtn').addEventListener('click', () => {
+        rowsCount.value = Number(rowsCount.value || totalRows) + 1;
+        buildTable();
+        saveState();
+      });
+
+      document.getElementById('removeRowBtn').addEventListener('click', () => {
+        rowsCount.value = Math.max(1, Number(rowsCount.value || totalRows) - 1);
+        buildTable();
+        saveState();
+      });
+
+      saveState();
+    }
+
+    function autoAdjustRows() {
+      const dates = parseLines(datesInput.value);
+      const topics = parseLines(topicsInput.value);
+      rowsCount.value = Math.max(dates.length, topics.length, 1);
+      buildTable();
+    }
+
+    function saveState() {
+      const state = {
+        subjectName: subjectName.value,
+        datesInput: datesInput.value,
+        topicsInput: topicsInput.value,
+        rowsCount: rowsCount.value,
+        rowHeight: rowHeight.value,
+        weekWidth: weekWidth.value,
+        topicWidth: topicWidth.value
+      };
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function loadState() {
+      const example = {
+        subjectName: 'Matemática 3',
+        datesInput: '17/07\n21/07\n24/07\n28/07\n31/07\n02/08\n05/08\n06/08\n07/08\n08/08',
+        topicsInput: '- Geometria Plana Euclidiana\n- Triângulos\n- Círculo e Circunferência\n- Polígonos\n- Quadriláteros\n- Áreas\n- Espacial de Posição\n- Espacial Métrica 1\n- Espacial Métrica 2\n- Geometria Analítica 1\n- Geometria Analítica 2\n- Trigonometria 1\n- Trigonometria 2',
+        rowsCount: '13',
+        rowHeight: '42px',
+        weekWidth: '20%',
+        topicWidth: '42%'
+      };
+
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY)) || example;
+        subjectName.value = saved.subjectName || example.subjectName;
+        datesInput.value = saved.datesInput || example.datesInput;
+        topicsInput.value = saved.topicsInput || example.topicsInput;
+        rowsCount.value = saved.rowsCount || example.rowsCount;
+        rowHeight.value = saved.rowHeight || example.rowHeight;
+        weekWidth.value = saved.weekWidth || example.weekWidth;
+        topicWidth.value = saved.topicWidth || example.topicWidth;
+      } catch {
+        subjectName.value = example.subjectName;
+        datesInput.value = example.datesInput;
+        topicsInput.value = example.topicsInput;
+        rowsCount.value = example.rowsCount;
+        rowHeight.value = example.rowHeight;
+        weekWidth.value = example.weekWidth;
+        topicWidth.value = example.topicWidth;
+      }
+    }
+
+    document.getElementById('generateBtn').addEventListener('click', buildTable);
+    document.getElementById('autoRowsBtn').addEventListener('click', autoAdjustRows);
+
+    document.getElementById('sampleBtn').addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      loadState();
+      buildTable();
+    });
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      subjectName.value = '';
+      datesInput.value = '';
+      topicsInput.value = '';
+      rowsCount.value = 8;
+      printArea.innerHTML = '<p class="empty-note">Preencha os dados acima e clique em “Gerar tabela”.</p>';
+      saveState();
+    });
+
+    [subjectName, datesInput, topicsInput, rowsCount, rowHeight, weekWidth, topicWidth].forEach(element => {
+      element.addEventListener('input', saveState);
+      element.addEventListener('change', saveState);
+    });
+
+    async function registerServiceWorker() {
+      if (!('serviceWorker' in navigator)) {
+        installTip.textContent = 'Este navegador não tem suporte a Service Worker. Tente pelo Chrome do Android.';
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.register('./sw.js', { scope: './' });
+        await navigator.serviceWorker.ready;
+        console.log('Service Worker registrado:', registration.scope);
+      } catch (error) {
+        console.warn('Falha ao registrar Service Worker:', error);
+        installTip.textContent = 'Não consegui ativar o modo app/offline. Confira se o arquivo sw.js está na raiz do GitHub.';
+      }
+    }
+
+    registerServiceWorker();
+
+    function setInstallReady() {
+      installTip.textContent = 'Pronto: toque em “Instalar app” para baixar no celular.';
+      installTip.classList.add('ok');
+      installBtn.classList.add('install-btn-ready');
+    }
+
+    window.addEventListener('beforeinstallprompt', (event) => {
+      event.preventDefault();
+      deferredPrompt = event;
+      setInstallReady();
+    });
+
+    installBtn.addEventListener('click', async () => {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.classList.remove('install-btn-ready');
+        return;
+      }
+
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+      if (isStandalone) {
+        installTip.textContent = 'Este app já está instalado ou aberto em modo aplicativo.';
+        installTip.classList.add('ok');
+        return;
+      }
+
+      installTip.textContent = 'O Chrome ainda não liberou a instalação automática. Abra pelo link do GitHub Pages, espere alguns segundos e recarregue. Se aparecer só “Adicionar à tela inicial”, use essa opção. Em alguns celulares o Chrome mostra esse nome em vez de “Instalar app”.';
+      installTip.classList.remove('ok');
+      installTip.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+
+    window.addEventListener('appinstalled', () => {
+      deferredPrompt = null;
+      installBtn.classList.remove('install-btn-ready');
+      installTip.textContent = 'Aplicativo instalado com sucesso.';
+      installTip.classList.add('ok');
+    });
+
+    loadState();
+    buildTable();
+  </script>
+</body>
+</html>
